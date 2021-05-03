@@ -5,7 +5,7 @@ from flask import request, Blueprint, make_response, jsonify
 planet_bp = Blueprint("planets", __name__, url_prefix="/planets") 
 
 # ENPOINT 1
-@planet_bp.route("", methods=["POST"]) # Ask: /add-a-planet
+@planet_bp.route("add-planet", methods=["POST"])
 def add_planet():    
     """Adds a new planet record to the DB table"""
     request_body = request.get_json() 
@@ -21,7 +21,7 @@ def add_planet():
     return make_response(f"Planet {new_planet.name} has been successfully added.", 201)
 
 # ENDPOINT 2
-@planet_bp.route("", methods=["GET"]) # Ask: /all-planets
+@planet_bp.route("/all-planets", methods=["GET"])
 def get_all_planets():
     """Gets data of the existing planets in the DB table"""
     all_planets = Planet.query.all() 
@@ -36,8 +36,9 @@ def get_all_planets():
                 "order": planet.order
                 })
 
-        planets_json = jsonify(response) 
-        return make_response(planets_json, 200) 
+        planets_json = jsonify(response)
+        return (planets_json, 200)
+        #return make_response(planets_json, 200) 
     
     return({"message": "No planets were found."}, 404) 
 
@@ -56,3 +57,31 @@ def get_one_planet(planet_id):
         }, 200)
 
     return({"message": f"Planet with id #{planet_id} was not found."}, 404) 
+
+# ENDPOINT 4 - updating 
+@planet_bp.route("/<planet_id>", methods=["PUT"])
+def update_planet(planet_id):
+    """Updates a portion of a single planet's data"""
+    planet = Planet.query.get(planet_id)
+    
+    if planet:
+        request_body = request.get_json()
+        planet.name = request_body["name"]
+        planet.description = request_body["description"]
+        planet.order = request_body["order"]
+
+        db.session.commit()
+        return ({"message": f"Planet {planet_id} was successfully updated."}, 200)
+    return ({"message": f"Planet with id #{planet_id} was not found."}, 404)
+
+# ENDPOINT 5 - delete
+@planet_bp.route("/<planet_id>", methods=["DELETE"])
+def delete_planet(planet_id):
+    """Deletes a planet from the database"""
+    planet = Planet.query.get(planet_id)
+
+    if planet:
+        db.session.delete(planet)
+        db.session.commit()
+        return ({"message": f"Planet with id {planet_id} has been deleted."}, 200)
+    return ({"message": f"Planet with id #{planet_id} was not found."}, 404)
