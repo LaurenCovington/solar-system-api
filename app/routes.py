@@ -17,8 +17,7 @@ def add_planet():
     
     db.session.add(new_planet) 
     db.session.commit() 
-
-    return make_response(f"Planet {new_planet.name} has been successfully added.", 201)
+    return jsonify(f"Planet {new_planet.name} has been successfully added."), 201 # this was not jsonified correctly (/at all)
 
 # ENDPOINT 2
 @planet_bp.route("/all-planets", methods=["GET"])
@@ -35,10 +34,10 @@ def get_all_planets():
                 "description": planet.description,
                 "order": planet.order
                 })
-
-        planets_json = jsonify(response)
-        return (planets_json, 200)
-        #return make_response(planets_json, 200) 
+        return jsonify(response), 200
+    if len(response) == 0:
+        print('hey there!')
+        return jsonify(response), 200
     
     return({"message": "No planets were found."}, 404) 
 
@@ -55,10 +54,9 @@ def get_one_planet(planet_id):
             "description": planet.description,
             "order": planet.order
         }, 200)
-
     return({"message": f"Planet with id #{planet_id} was not found."}, 404) 
 
-# ENDPOINT 4 - updating 
+# ENDPOINT 4
 @planet_bp.route("/<planet_id>", methods=["PUT"])
 def update_planet(planet_id):
     """Updates a portion of a single planet's data"""
@@ -74,7 +72,7 @@ def update_planet(planet_id):
         return ({"message": f"Planet {planet_id} was successfully updated."}, 200)
     return ({"message": f"Planet with id #{planet_id} was not found."}, 404)
 
-# ENDPOINT 5 - delete
+# ENDPOINT 5
 @planet_bp.route("/<planet_id>", methods=["DELETE"])
 def delete_planet(planet_id):
     """Deletes a planet from the database"""
