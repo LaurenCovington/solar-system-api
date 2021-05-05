@@ -5,7 +5,7 @@ from flask import request, Blueprint, make_response, jsonify
 planet_bp = Blueprint("planets", __name__, url_prefix="/planets") 
 
 # ENPOINT 1
-@planet_bp.route("add-planet", methods=["POST"])
+@planet_bp.route("/add-planet", methods=["POST"])
 def add_planet():    
     """Adds a new planet record to the DB table"""
     request_body = request.get_json() 
@@ -19,15 +19,20 @@ def add_planet():
     db.session.commit() 
     return jsonify(f"Planet {new_planet.name} has been successfully added."), 201 # this was not jsonified correctly (/at all)
 
-# ENDPOINT 2
+# ENDPOINT 2 -- added ability to get a planet by title if URL contains a title as a query param 5/5/21
 @planet_bp.route("/all-planets", methods=["GET"])
 def get_all_planets():
     """Gets data of the existing planets in the DB table"""
-    all_planets = Planet.query.all() 
-    response = [] 
 
-    if all_planets: 
-        for planet in all_planets:
+    planet_name_from_url = request.args.get("name")
+    if planet_name_from_url:
+        planets = Planet.query.filter_by(name=planet_name_from_url)
+    else:
+        planets = Planet.query.all() 
+    
+    response = [] 
+    if planets: 
+        for planet in planets:
             response.append({
                 "id": planet.id,
                 "name": planet.name,
@@ -36,12 +41,11 @@ def get_all_planets():
                 })
         return jsonify(response), 200
     if len(response) == 0:
-        print('hey there!')
         return jsonify(response), 200
     
     return({"message": "No planets were found."}, 404) 
 
-# ENDPOINT 3
+# ENDPOINT 3 
 @planet_bp.route("/<planet_id>", methods=["GET"]) 
 def get_one_planet(planet_id):
     """Gets data of a particular planet"""
