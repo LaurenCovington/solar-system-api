@@ -8,7 +8,7 @@ planet_bp = Blueprint("planets", __name__, url_prefix="/planets")
 @planet_bp.route("/add-planet", methods=["POST"])
 def add_planet():    
     """Adds a new planet record to the DB table"""
-    request_body = request.get_json() 
+    request_body = request.get_json() # request.get_json() converts the JSON object (created on the 'form and website' where you entered the details of the new planet you added) into Python data.
     new_planet = Planet(
         name=request_body["name"],
         description=request_body["description"], 
@@ -40,6 +40,7 @@ def get_all_planets():
                 "order": planet.order
                 })
         return jsonify(response), 200
+
     if len(response) == 0:
         return jsonify(response), 200
     
